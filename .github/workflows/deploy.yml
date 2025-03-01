@@ -27,21 +27,65 @@ jobs:
       - name: Set Static Data
         id: static_data
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/prod-staging" ]; then
-            echo "site_tld=dev" >> $GITHUB_OUTPUT
-            echo "environment=stg" >> $GITHUB_OUTPUT
-            echo "fcc_api_log_level=${{ inputs.fcc_api_log_level || 'info' }}" >> $GITHUB_OUTPUT
-          elif [ "${{ github.ref }}" == "refs/heads/prod-current" ]; then
-            echo "site_tld=org" >> $GITHUB_OUTPUT
-            echo "environment=prd" >> $GITHUB_OUTPUT
-            echo "fcc_api_log_level=${{ inputs.fcc_api_log_level || 'info' }}" >> $GITHUB_OUTPUT
-          else
-            echo "site_tld=dev" >> $GITHUB_OUTPUT
-            echo "environment=stg" >> $GITHUB_OUTPUT
-            echo "fcc_api_log_level=${{ inputs.fcc_api_log_level || 'info' }}" >> $GITHUB_OUTPUT
-          fi
+          case "${{ github.ref }}" in
+            "refs/heads/prod-current")
+              echo "site_tld=org" >> $GITHUB_OUTPUT
+              echo "environment=prd" >> $GITHUB_OUTPUT
+              echo "algolia_api_key=${{ secrets.ALGOLIA_API_KEY_PRD }}" >> $GITHUB_OUTPUT
+              echo "algolia_app_id=${{ secrets.ALGOLIA_APP_ID_PRD }}" >> $GITHUB_OUTPUT
+              echo "patreon_client_id=${{ secrets.PATREON_CLIENT_ID_PRD }}" >> $GITHUB_OUTPUT
+              echo "paypal_client_id=${{ secrets.PAYPAL_CLIENT_ID_PRD }}" >> $GITHUB_OUTPUT
+              echo "stripe_public_key=${{ secrets.STRIPE_PUBLIC_KEY_PRD }}" >> $GITHUB_OUTPUT
+              echo "api_location=https://api.freecodecamp.org" >> $GITHUB_OUTPUT
+              echo "forum_location=https://forum.freecodecamp.org" >> $GITHUB_OUTPUT
+              echo "news_location=https://www.freecodecamp.org/news" >> $GITHUB_OUTPUT
+              echo "home_location=https://www.freecodecamp.org" >> $GITHUB_OUTPUT
+              echo "growthbook_uri=https://www.freecodecamp.org" >> $GITHUB_OUTPUT
+              echo "deployment_env=production" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "site_tld=dev" >> $GITHUB_OUTPUT
+              echo "environment=stg" >> $GITHUB_OUTPUT
+              echo "algolia_api_key=${{ secrets.ALGOLIA_API_KEY_STG }}" >> $GITHUB_OUTPUT
+              echo "algolia_app_id=${{ secrets.ALGOLIA_APP_ID_STG }}" >> $GITHUB_OUTPUT
+              echo "patreon_client_id=${{ secrets.PATREON_CLIENT_ID_STG }}" >> $GITHUB_OUTPUT
+              echo "paypal_client_id=${{ secrets.PAYPAL_CLIENT_ID_STG }}" >> $GITHUB_OUTPUT
+              echo "stripe_public_key=${{ secrets.STRIPE_PUBLIC_KEY_STG }}" >> $GITHUB_OUTPUT
+              echo "api_location=https://api.freecodecamp.dev" >> $GITHUB_OUTPUT
+              echo "forum_location=https://forum.freecodecamp.dev" >> $GITHUB_OUTPUT
+              echo "news_location=https://www.freecodecamp.dev/news" >> $GITHUB_OUTPUT
+              echo "home_location=https://www.freecodecamp.dev" >> $GITHUB_OUTPUT
+              echo "growthbook_uri=https://www.freecodecamp.dev" >> $GITHUB_OUTPUT
+              echo "deployment_env=staging" >> $GITHUB_OUTPUT
+              ;;
+          esac
+          echo "fcc_api_log_level=${{ inputs.fcc_api_log_level || 'info' }}" >> $GITHUB_OUTPUT
 
-  build:
+  build-client:
+    name: Build Client
+    needs: static
+    strategy:
+      matrix:
+        lang:
+          - eng
+          - esp
+          - chn
+    uses: ./.github/workflows/build-client.yml
+    with:
+      lang: ${{ matrix.lang }}
+      algolia_api_key: ${{ needs.static.outputs.algolia_api_key }}
+      algolia_app_id: ${{ needs.static.outputs.algolia_app_id }}
+      patreon_client_id: ${{ needs.static.outputs.patreon_client_id }}
+      paypal_client_id: ${{ needs.static.outputs.paypal_client_id }}
+      stripe_public_key: ${{ needs.static.outputs.stripe_public_key }}
+      api_location: ${{ needs.static.outputs.api_location }}
+      forum_location: ${{ needs.static.outputs.forum_location }}
+      news_location: ${{ needs.static.outputs.news_location }}
+      home_location: ${{ needs.static.outputs.home_location }}
+      growthbook_uri: ${{ needs.static.outputs.growthbook_uri }}
+      deployment_env: ${{ needs.static.outputs.deployment_env }}
+
+  build-api:
     name: Build & Push
     needs: static
     uses: ./.github/workflows/docker-docr.yml
@@ -53,7 +97,7 @@ jobs:
   deploy:
     name: Deploy to Docker Swarm -- ${{ needs.static.outputs.environment }}
     runs-on: ubuntu-24.04
-    needs: [static, build]
+    needs: [static, build-api]
     env:
       TS_USERNAME: ${{ secrets.TS_USERNAME }}
       TS_MACHINE_NAME: ${{ secrets.TS_MACHINE_NAME }}

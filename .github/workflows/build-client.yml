@@ -1,0 +1,153 @@
+name: Build -- Client
+
+on:
+  workflow_call:
+    inputs:
+      lang:
+        type: string
+        default: 'eng'
+      api_location:
+        type: string
+        default: 'https://api.freecodecamp.org'
+      algolia_api_key:
+        type: string
+        required: true
+      algolia_app_id:
+        type: string
+        required: true
+      client_locale:
+        type: string
+        default: 'english'
+      curriculum_locale:
+        type: string
+        default: 'english'
+      deployment_env:
+        type: string
+        default: 'production'
+      forum_location:
+        type: string
+        default: 'https://forum.freecodecamp.org'
+      growthbook_uri:
+        type: string
+        default: 'https://www.freecodecamp.org'
+      home_location:
+        type: string
+        default: 'https://www.freecodecamp.org'
+      news_location:
+        type: string
+        default: 'https://www.freecodecamp.org/news'
+      patreon_client_id:
+        type: string
+        required: true
+      paypal_client_id:
+        type: string
+        required: true
+      stripe_public_key:
+        type: string
+        required: true
+      show_upcoming_changes:
+        type: string
+        default: 'false'
+  workflow_dispatch:
+    inputs:
+      lang:
+        type: string
+        default: 'eng'
+      api_location:
+        type: string
+        default: 'https://api.freecodecamp.org'
+      algolia_api_key:
+        type: string
+        required: true
+      algolia_app_id:
+        type: string
+        required: true
+      client_locale:
+        type: string
+        default: 'english'
+      curriculum_locale:
+        type: string
+        default: 'english'
+      deployment_env:
+        type: string
+        default: 'production'
+      forum_location:
+        type: string
+        default: 'https://forum.freecodecamp.org'
+      growthbook_uri:
+        type: string
+        default: 'https://www.freecodecamp.org'
+      home_location:
+        type: string
+        default: 'https://www.freecodecamp.org'
+      news_location:
+        type: string
+        default: 'https://www.freecodecamp.org/news'
+      patreon_client_id:
+        type: string
+        required: true
+      paypal_client_id:
+        type: string
+        required: true
+      stripe_public_key:
+        type: string
+        required: true
+      show_upcoming_changes:
+        type: string
+        default: 'false'
+jobs:
+  build:
+    name: Build Client - ${{ inputs.lang }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        node-version: [20.x]
+    env:
+      API_LOCATION: ${{ inputs.api_location }}
+      ALGOLIA_APIKEY: ${{ inputs.algolia_api_key }}
+      ALGOLIA_APP_ID: ${{ inputs.algolia_app_id }}
+      CLIENT_LOCALE: ${{ inputs.client_locale }}
+      CURRICULUM_LOCALE: ${{ inputs.curriculum_locale }}
+      DEPLOYMENT_ENV: ${{ inputs.deployment_env }} # This is used in the ecosystem.config.js file -- to be removed later
+      FORUM_LOCATION: ${{ inputs.forum_location || 'https://forum.freecodecamp.org' }}
+      GROWTHBOOK_URI: ${{ inputs.growthbook_uri }}
+      HOME_LOCATION: ${{ inputs.home_location }}
+      NEWS_LOCATION: ${{ inputs.news_location }}
+      PATREON_CLIENT_ID: ${{ inputs.patreon_client_id }}
+      PAYPAL_CLIENT_ID: ${{ inputs.paypal_client_id }}
+      STRIPE_PUBLIC_KEY: ${{ inputs.stripe_public_key }}
+      SHOW_UPCOMING_CHANGES: ${{ inputs.show_upcoming_changes || 'false' }}
+
+    steps:
+      - name: Checkout Source Files
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          submodules: 'recursive'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d #v3.0.0
+        with:
+          version: 9
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
+
+      - name: Install and Build
+        run: |
+          pnpm install
+          pnpm run build
+
+      # We tar them for performance reasons - uploading a lot of files is slow.
+      - name: Tar Files
+        run: tar -cf client-${{ inputs.lang }}.tar client/public
+
+      - name: Upload Client Artifact
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: client-${{ inputs.lang }}.tar
+          path: client-${{ inputs.lang }}.tar
