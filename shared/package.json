@@ -20,5 +20,9 @@
   "dependencies": {
     "@types/invariant": "^2.2.37",
     "invariant": "2.2.4"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf config/*.js utils/*.js"
   }
 }

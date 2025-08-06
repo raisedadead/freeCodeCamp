@@ -1,0 +1,38 @@
+{
+  "$schema": "https://turborepo.org/schema.json",
+  "globalDependencies": ["**/.env", "**/.env.*"],
+  "globalEnv": ["NODE_ENV", "FREECODECAMP_NODE_ENV", "CI", "DEBUG"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [
+        "dist/**",
+        "build/**",
+        "public/**",
+        "config/*.js",
+        "utils/*.js"
+      ],
+      "env": ["NODE_ENV", "FREECODECAMP_NODE_ENV"]
+    },
+    "build:curriculum": {
+      "outputs": ["../shared/config/curriculum.json"],
+      "cache": true,
+      "dependsOn": ["@freecodecamp/shared#build"]
+    },
+    "develop": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["@freecodecamp/shared#build"]
+    },
+    "test": {
+      "dependsOn": ["build"],
+      "outputs": ["coverage/**"]
+    },
+    "lint": {
+      "outputs": []
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}
