@@ -1,0 +1,32 @@
+{
+  "name": "Codespaces",
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "16gb",
+    "storage": "32gb"
+  },
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "devcontainer",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "forwardPorts": [3000, 8000],
+  "portsAttributes": {
+    "3000": {
+      "label": "API",
+      "onAutoForward": "silent",
+      "protocol": "https"
+    },
+    "8000": {
+      "label": "Client",
+      "onAutoForward": "notify",
+      "protocol": "https"
+    }
+  },
+  "otherPortsAttributes": {
+    "onAutoForward": "silent"
+  },
+  "onCreateCommand": "[ ! -f .env ] && cp sample.env .env || true",
+  "updateContentCommand": "pnpm install && pnpm seed",
+  "postAttachCommand": {
+    "instructions": "bash -c 'echo \"\n\n\n Start a new terminal and run \\`pnpm run develop\\` when you are ready.\n\n\n\"'"
+  }
+}
