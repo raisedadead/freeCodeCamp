@@ -32,7 +32,7 @@ LGTM
 ### If Tests Are Missing
 Provide a brief, actionable nudge:
 ```
-Consider adding tests for the new/modified functionality in [specific file]. 
+Consider adding tests for the new/modified functionality in [specific file].
 For example:
 - Test case for [specific scenario]
 - Edge case handling for [specific condition]
@@ -42,7 +42,7 @@ For example:
 
 **Good Comment (Missing Tests):**
 ```
-Consider adding tests for the new validation logic in `src/utils/validate.ts`. 
+Consider adding tests for the new validation logic in `src/utils/validate.ts`.
 For example:
 - Test valid input scenarios
 - Test invalid input handling
