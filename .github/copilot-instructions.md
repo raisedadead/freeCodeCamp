@@ -62,6 +62,7 @@ LGTM
 ## Test File Conventions
 
 This repository uses:
-- Vitest as the testing framework
-- Test files are named `*.test.ts`, `*.test.js`, `*.test.tsx`
-- Tests are typically co-located with source files or in a `__tests__` directory
+- **Vitest** for unit tests: `*.test.ts`, `*.test.js`, `*.test.tsx`, `*.test.jsx`
+- **Playwright** for e2e tests: `*.spec.ts` (in the `e2e/` directory)
+- Unit tests are typically co-located with source files (e.g., `api/src/utils/`)
+- E2E tests are in the dedicated `e2e/` directory
