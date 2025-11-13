@@ -51,6 +51,7 @@ import {
   MAX_MOBILE_WIDTH,
   EX_SMALL_VIEWPORT_HEIGHT
 } from '../../../config/misc';
+import { CommandMenu, useCommandMenu } from '../command-menu';
 
 import '@freecodecamp/ui/dist/base.css';
 // preload common fonts
@@ -153,6 +154,7 @@ function DefaultLayout({
   const isExSmallViewportHeight = useMediaQuery({
     maxHeight: EX_SMALL_VIEWPORT_HEIGHT
   });
+  const { isOpen, close } = useCommandMenu();
 
   useEffect(() => {
     initializeTheme();
@@ -292,6 +294,7 @@ function DefaultLayout({
             />
           ) : null}
           <SignoutModal />
+          <CommandMenu isOpen={isOpen} onClose={close} />
           {isDailyChallenge ? (
             <div className='breadcrumbs-demo'>
               <DailyChallengeBreadCrumb
