@@ -30,6 +30,7 @@ import {
   getCurriculumLocale,
   CurriculumIntros,
   fillIntrosFromEnglish,
+  collectIntroFallbacks,
   type SuperBlockIntro
 } from './build-external-curricula-data-v2';
 
@@ -499,5 +500,31 @@ describe('fillIntrosFromEnglish', () => {
     );
     expect(filled[SuperBlocks.RosettaCode]).not.toHaveProperty('chapters');
     expect(filled[SuperBlocks.RosettaCode]).not.toHaveProperty('modules');
+  });
+
+  test('reports every key that fell back to english', () => {
+    expect(collectIntroFallbacks(localised, english)).toEqual([
+      `${SuperBlocks.PythonV9} > modules > python-recursion`,
+      `${SuperBlocks.PythonV9} > blocks > quiz-recursion-python`,
+      `${SuperBlocks.PythonV9} > blocks > review-recursion-python`,
+      `${SuperBlocks.RosettaCode} > blocks > rosetta-code`,
+      SuperBlocks.ProjectEuler
+    ]);
+  });
+
+  test('reports nothing when the locale is fully translated', () => {
+    expect(collectIntroFallbacks(english, english)).toEqual([]);
+  });
+
+  test('ignores a block that has no english intro to fall back to', () => {
+    const titleOnly = {
+      [SuperBlocks.RosettaCode]: {
+        title: 'Rosetta Code',
+        intro: ['English superblock intro'],
+        blocks: { 'rosetta-code': { title: 'Rosetta Code' } }
+      }
+    } as unknown as Record<SuperBlocks, SuperBlockIntro>;
+
+    expect(collectIntroFallbacks(titleOnly, titleOnly)).toEqual([]);
   });
 });
