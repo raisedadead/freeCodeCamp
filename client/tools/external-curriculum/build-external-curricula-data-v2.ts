@@ -136,6 +136,8 @@ const staticFolderPath = resolve(__dirname, '../../../client/static');
 const dataPath = `${staticFolderPath}/curriculum-data/`;
 const introsByLanguage = new Map<Languages, CurriculumIntros>();
 const FALLBACK_REPORT_LIMIT = 20;
+const SUPER_BLOCK_INTRO_FIELDS = ['title', 'intro', 'summary'] as const;
+const BLOCK_INTRO_FIELDS = ['title', 'intro'] as const;
 const intros = readCurriculumIntros(getCurriculumLocale());
 
 export function getCurriculumLocale(): Languages {
@@ -237,9 +239,18 @@ export function collectIntroFallbacks(
       continue;
     }
 
+    for (const field of SUPER_BLOCK_INTRO_FIELDS) {
+      if (
+        englishSuperBlock[field] !== undefined &&
+        localisedSuperBlock[field] === undefined
+      ) {
+        fallbacks.push(`${key} > ${field}`);
+      }
+    }
+
     for (const field of ['chapters', 'modules'] as SuperBlockIntroRecord[]) {
       for (const name of Object.keys(englishSuperBlock[field] ?? {})) {
-        if (!localisedSuperBlock[field]?.[name]) {
+        if (localisedSuperBlock[field]?.[name] === undefined) {
           fallbacks.push(`${key} > ${field} > ${name}`);
         }
       }
@@ -250,8 +261,18 @@ export function collectIntroFallbacks(
     )) {
       const localisedBlock = localisedSuperBlock.blocks?.[name];
 
-      if (!localisedBlock || (englishBlock.intro && !localisedBlock.intro)) {
+      if (!localisedBlock) {
         fallbacks.push(`${key} > blocks > ${name}`);
+        continue;
+      }
+
+      for (const field of BLOCK_INTRO_FIELDS) {
+        if (
+          englishBlock[field] !== undefined &&
+          localisedBlock[field] === undefined
+        ) {
+          fallbacks.push(`${key} > blocks > ${name} > ${field}`);
+        }
       }
     }
   }
@@ -263,13 +284,13 @@ function reportIntroFallbacks(lang: Languages, fallbacks: string[]): void {
   if (fallbacks.length === 0) return;
 
   console.log(
-    `::warning::[${lang}] ${fallbacks.length} curriculum intro keys fell back to English. ` +
+    `::warning::[${lang}] ${fallbacks.length} curriculum intro entries fell back to English. ` +
       'This is expected for newly added curriculum. ' +
       'The next i18n-curriculum sync resolves it.'
   );
 
   for (const fallback of fallbacks.slice(0, FALLBACK_REPORT_LIMIT)) {
-    console.log(`  ${fallback}`);
+    console.log(`  ${fallback.replace(/^:+/, '')}`);
   }
 
   const hidden = fallbacks.length - FALLBACK_REPORT_LIMIT;

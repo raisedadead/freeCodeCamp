@@ -505,10 +505,24 @@ describe('fillIntrosFromEnglish', () => {
   test('reports every key that fell back to english', () => {
     expect(collectIntroFallbacks(localised, english)).toEqual([
       `${SuperBlocks.PythonV9} > modules > python-recursion`,
-      `${SuperBlocks.PythonV9} > blocks > quiz-recursion-python`,
+      `${SuperBlocks.PythonV9} > blocks > quiz-recursion-python > intro`,
       `${SuperBlocks.PythonV9} > blocks > review-recursion-python`,
       `${SuperBlocks.RosettaCode} > blocks > rosetta-code`,
       SuperBlocks.ProjectEuler
+    ]);
+  });
+
+  test('reports a superblock summary that only exists in english', () => {
+    const withSummary = {
+      [SuperBlocks.RosettaCode]: {
+        ...english[SuperBlocks.RosettaCode],
+        summary: ['English summary']
+      }
+    } as unknown as Record<SuperBlocks, SuperBlockIntro>;
+
+    expect(collectIntroFallbacks(localised, withSummary)).toEqual([
+      `${SuperBlocks.RosettaCode} > summary`,
+      `${SuperBlocks.RosettaCode} > blocks > rosetta-code`
     ]);
   });
 
