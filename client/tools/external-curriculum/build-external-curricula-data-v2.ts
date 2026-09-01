@@ -136,7 +136,7 @@ const staticFolderPath = resolve(__dirname, '../../../client/static');
 const dataPath = `${staticFolderPath}/curriculum-data/`;
 const introsByLanguage = new Map<Languages, CurriculumIntros>();
 const FALLBACK_REPORT_LIMIT = 20;
-const SUPER_BLOCK_INTRO_FIELDS = ['title', 'intro', 'summary'] as const;
+const SUPER_BLOCK_INTRO_RECORDS: string[] = ['blocks', 'chapters', 'modules'];
 const BLOCK_INTRO_FIELDS = ['title', 'intro'] as const;
 const intros = readCurriculumIntros(getCurriculumLocale());
 
@@ -239,11 +239,19 @@ export function collectIntroFallbacks(
       continue;
     }
 
-    for (const field of SUPER_BLOCK_INTRO_FIELDS) {
-      if (
-        englishSuperBlock[field] !== undefined &&
-        localisedSuperBlock[field] === undefined
-      ) {
+    const englishFields = englishSuperBlock as unknown as Record<
+      string,
+      unknown
+    >;
+    const localisedFields = localisedSuperBlock as unknown as Record<
+      string,
+      unknown
+    >;
+
+    for (const field of Object.keys(englishFields)) {
+      if (SUPER_BLOCK_INTRO_RECORDS.includes(field)) continue;
+
+      if (localisedFields[field] === undefined) {
         fallbacks.push(`${key} > ${field}`);
       }
     }
@@ -290,7 +298,7 @@ function reportIntroFallbacks(lang: Languages, fallbacks: string[]): void {
   );
 
   for (const fallback of fallbacks.slice(0, FALLBACK_REPORT_LIMIT)) {
-    console.log(`  ${fallback.replace(/^:+/, '')}`);
+    console.log(`  ${fallback.replace(/[\r\n]+/g, ' ')}`);
   }
 
   const hidden = fallbacks.length - FALLBACK_REPORT_LIMIT;

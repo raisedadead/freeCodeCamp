@@ -530,6 +530,59 @@ describe('fillIntrosFromEnglish', () => {
     expect(collectIntroFallbacks(english, english)).toEqual([]);
   });
 
+  test('reports a block title that only exists in english', () => {
+    const englishOnlyTitle = {
+      [SuperBlocks.RosettaCode]: {
+        title: 'Rosetta Code',
+        intro: ['English superblock intro'],
+        blocks: {
+          'rosetta-code': { title: 'Rosetta Code', intro: ['English'] }
+        }
+      }
+    } as unknown as Record<SuperBlocks, SuperBlockIntro>;
+
+    const missingTitle = {
+      [SuperBlocks.RosettaCode]: {
+        intro: ['Translated superblock intro'],
+        blocks: { 'rosetta-code': { intro: ['Translated'] } }
+      }
+    } as unknown as Record<SuperBlocks, SuperBlockIntro>;
+
+    expect(collectIntroFallbacks(missingTitle, englishOnlyTitle)).toEqual([
+      `${SuperBlocks.RosettaCode} > title`,
+      `${SuperBlocks.RosettaCode} > blocks > rosetta-code > title`
+    ]);
+  });
+
+  test('ignores a translation that is present but empty', () => {
+    const englishValues = {
+      [SuperBlocks.PythonV9]: {
+        title: 'Python',
+        intro: ['English superblock intro'],
+        chapters: { 'python-basics': 'Python Basics' },
+        modules: {},
+        blocks: {
+          'quiz-recursion-python': {
+            title: 'Recursion Quiz',
+            intro: ['English quiz intro']
+          }
+        }
+      }
+    } as unknown as Record<SuperBlocks, SuperBlockIntro>;
+
+    const emptyValues = {
+      [SuperBlocks.PythonV9]: {
+        title: '',
+        intro: [],
+        chapters: { 'python-basics': '' },
+        modules: {},
+        blocks: { 'quiz-recursion-python': { title: '', intro: [] } }
+      }
+    } as unknown as Record<SuperBlocks, SuperBlockIntro>;
+
+    expect(collectIntroFallbacks(emptyValues, englishValues)).toEqual([]);
+  });
+
   test('ignores a block that has no english intro to fall back to', () => {
     const titleOnly = {
       [SuperBlocks.RosettaCode]: {
